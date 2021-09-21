@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
 
+    'numapi.apps.NumapiConfig',
 
     # Defaults
     'django.contrib.admin',
