@@ -2,10 +2,13 @@ import json
 from decimal import Decimal, InvalidOperation
 
 from django.http.request import HttpRequest
+
+from .decorators import debug, for_all_methods
 from .response_objects import NumApiResponseData
 from .utilities import NumberEnglishTranslator
 
 
+@for_all_methods(debug)
 class NumberTranslationService:
     """
     Service to handle business logic of responding to
@@ -33,7 +36,6 @@ class NumberTranslationService:
             raise TypeError(cls.ERR_ONLY_GET)
         return cls._get_response(request.GET.get(cls.PARAMETER, None))
 
-
     @classmethod
     def from_post(cls, request: HttpRequest) -> NumApiResponseData:
         """
@@ -44,22 +46,19 @@ class NumberTranslationService:
             raise TypeError(cls.ERR_ONLY_POST)
         return cls._get_response(json.loads(request.body).get(cls.PARAMETER))
 
-
     @classmethod
     def handle_error(cls, msg: str) -> NumApiResponseData:
         return NumApiResponseData(msg, None)
-
 
     @classmethod
     def _get_response(cls, number: any) -> NumApiResponseData:
         translator = cls._build_translator(number)
         return NumApiResponseData(cls.STATUS_OK, translator.get_translation())
 
-
     @classmethod
     def _build_translator(cls, value: any) -> NumberEnglishTranslator:
         # first check if any number was provided.
-        if value is None:
+        if value is None or (isinstance(value, str) and value.strip() == ""):
             raise ValueError(cls.ERR_NO_NUM_PROVIDED)
         # then try to build a translator object
         try:

@@ -2,8 +2,10 @@ import logging
 from collections import Callable
 
 from django.http import JsonResponse
+from django.shortcuts import render
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
 
 from .log_service import Logger
 from .number_translation_service import NumberTranslationService
@@ -12,7 +14,7 @@ from .response_objects import NumApiResponseData
 
 
 class NumberAPI(View):
-    http_method_names = ['get', 'post']
+    http_method_names = ["get", "post"]
     _logger = Logger().get_logger()
 
     def _handle_error(func: Callable) -> JsonResponse:
@@ -45,8 +47,12 @@ class NumberAPI(View):
         raise ValueError("Method not supported.")
 
     # TODO - remove
-#        return self._build_response(NumberTranslationService.unsupported_method(request))
+    #        return self._build_response(NumberTranslationService.unsupported_method(request))
 
     @staticmethod
     def _build_response(response_data: NumApiResponseData) -> JsonResponse:
         return JsonResponse(vars(response_data))
+
+
+class Display(TemplateView):
+    template_name = "numapi/index.html"

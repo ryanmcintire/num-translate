@@ -1,8 +1,9 @@
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 
-from .views import NumberAPI
+from .views import NumberAPI, Display
 
 urlpatterns = [
-    path('', csrf_exempt(NumberAPI.as_view()))
+    path('num_to_english', csrf_exempt(NumberAPI.as_view())),
+    path('test', Display.as_view())
 ]
