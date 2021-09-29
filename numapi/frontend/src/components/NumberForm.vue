@@ -13,12 +13,15 @@
                    placeholder="Enter number to translate to English"
                    v-model="number"/>
           </div>
+
+          <!--          Buttons here are candidates for separate component; elected to keep here for simplicity. -->
           <div class="form-group spacer">
             <span class="spacer">
-              <button class="btn btn-outline-primary" v-on:click="get">GET</button>
+              <button id="btn-get" class="btn btn-outline-primary" @click="get">GET</button>
             </span>
             <span class="spacer">
-              <button class="btn btn-outline-danger" data-bs-toggle="modal" v-on:click="post" :disabled="loading">
+              <button id="btn-post" class="btn btn-outline-danger" data-bs-toggle="modal" @click="post"
+                      :disabled="loading">
                 <span v-show="!loading">POST</span>
                 <span class="spinner-border spinner-border-sm text-danger" v-show="loading"></span>
               </button>
@@ -26,10 +29,12 @@
           </div>
         </form>
         <div class="row">
-          <div class="text-danger">
+          <div id="error-text" class="text-danger"
+               v-show="translationError != null && translationError.length > 0">
             {{ translationError }}
           </div>
-          <div class="text-white">
+          <div id="translation-text" class="text-white"
+               v-show="translatedNumber != null && translatedNumber.length > 0">
             Translated number: {{ translatedNumber }}
           </div>
         </div>
@@ -41,15 +46,22 @@
 <script>
 
 const STATUS_OK = "ok";
+const STATUS_UNKNOWN_ERR = "Unknown error.";
 
 export default {
   name: "NumberForm",
-  inject: ["numberTranslationService"],
+  inject: ["numberTranslationService"], // Not thrilled about the string literal here, but
+                                        // don't yet know Vue best practices.
   methods: {
     async get(e) {
-      e.preventDefault();
-      this.clearOutput();
-      this.updateDisplay(await this.numberTranslationService.get(this.number));
+      try {
+        e.preventDefault();
+        this.clearOutput();
+        this.updateDisplay(await this.numberTranslationService.get(this.number));
+      } catch (e) {
+        console.error(e);
+        this.updateDisplay({status: STATUS_UNKNOWN_ERR});
+      }
     },
     async post(e) {
       try {
@@ -59,17 +71,17 @@ export default {
         const data = await this.numberTranslationService.post(this.number);
         this.updateDisplay(data);
         this.loading = false;
+      } catch (e) {
+        console.error(e);
+        this.updateDisplay({status: STATUS_UNKNOWN_ERR});
       } finally {
         this.loading = false;
       }
-
     },
     updateDisplay(data) {
-      console.log('in update display: ' + data);
       const {status, numToEnglish} = data;
       this.translationError = status === STATUS_OK ? "" : status;
       this.translatedNumber = numToEnglish;
-      this.number = "";
     },
     clearOutput() {
       this.translatedNumber = "";
@@ -88,9 +100,6 @@ export default {
 </script>
 
 <style>
-.spinner-spacing {
-
-}
 
 .spacer {
   padding: 20px 20px 20px 0;

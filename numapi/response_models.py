@@ -1,7 +1,6 @@
-from paprika import data
+from dataclasses import dataclass
 
-
-@data
+@dataclass
 class NumApiResponseData:
     status: str
     num_to_english: int

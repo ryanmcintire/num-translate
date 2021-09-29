@@ -1,16 +1,14 @@
-import logging
 from collections import Callable
 
 from django.http import JsonResponse
-from django.shortcuts import render
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
-from .log_service import Logger
-from .number_translation_service import NumberTranslationService
+from numapi.services.log_service import Logger
+from numapi.services.number_translation_service import NumberTranslationService
 from .decorators import debug
-from .response_objects import NumApiResponseData
+from .response_models import NumApiResponseData
 
 
 class NumberAPI(View):
@@ -45,9 +43,6 @@ class NumberAPI(View):
     @_handle_error
     def http_method_not_allowed(self, request, *args, **kwargs) -> JsonResponse:
         raise ValueError("Method not supported.")
-
-    # TODO - remove
-    #        return self._build_response(NumberTranslationService.unsupported_method(request))
 
     @staticmethod
     def _build_response(response_data: NumApiResponseData) -> JsonResponse:

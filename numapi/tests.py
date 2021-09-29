@@ -1,11 +1,11 @@
-from django.http import HttpRequest, QueryDict
+from django.http import HttpRequest
 from django.test.client import RequestFactory
 from num2words import num2words
 
-from numapi.number_translation_service import NumberTranslationService
-from numapi.response_objects import NumApiResponseData
+from numapi.services.number_translation_service import NumberTranslationService
+from numapi.response_models import NumApiResponseData
 
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 from django.test import TestCase
 

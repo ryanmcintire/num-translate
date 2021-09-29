@@ -1,9 +1,8 @@
 from collections.abc import Callable
 from typing import Any
 import functools
-import inspect
 
-from numapi.log_service import Logger
+from numapi.services.log_service import Logger
 
 _logger = Logger().get_logger()
 

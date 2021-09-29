@@ -20,20 +20,12 @@ export default class NumberTranslationService {
     }
 
     async post(number) {
-        console.log('trying to post...');
         try {
-            console.log('timing...');
             await new Promise(resolve => setTimeout(resolve, 5000));
-            console.log('getting data');
             const {data} = await CLIENT.post(POST_PATH, {number});
-            console.log('returning data...' + data);
             return data;
         } catch {
-            console.log('in handle error...');
-            const thingy = handleError();
-            console.log("Thingy: " + thingy);
-            console.log(thingy);
-            return thingy;
+            return handleError();
         }
 
     }

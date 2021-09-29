@@ -3,9 +3,9 @@ from decimal import Decimal, InvalidOperation
 
 from django.http.request import HttpRequest
 
-from .decorators import debug, for_all_methods
-from .response_objects import NumApiResponseData
-from .utilities import NumberEnglishTranslator
+from numapi.decorators import debug, for_all_methods
+from numapi.response_models import NumApiResponseData
+from numapi.services.service_models import NumberEnglishTranslator
 
 
 @for_all_methods(debug)
