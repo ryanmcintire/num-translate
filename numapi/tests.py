@@ -9,6 +9,7 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
+from numapi.services.service_models import NumberEnglishTranslator
 from numapi.views import NumberAPI
 
 import math
@@ -82,6 +83,12 @@ class NumApiRequestHandlerTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.translation_service.handle_error.assert_called_with(error_msg)
         self.assertJSONEqual(response.content, self.error_content)
+
+class NumberTranslatorTest(TestCase):
+    translator = NumberEnglishTranslator()
+    translation = translator.process("100,000,023.000100")
+    print(translation)
+
 
 
 class NumberTranslationServiceTests(TestCase):
