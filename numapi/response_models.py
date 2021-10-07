@@ -3,4 +3,4 @@ from dataclasses import dataclass
 @dataclass
 class NumApiResponseData:
     status: str
-    num_to_english: int
+    num_to_english: str

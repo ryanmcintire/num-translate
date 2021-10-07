@@ -51,21 +51,21 @@ class NumberTranslationService:
         return NumApiResponseData(msg, None)
 
     @classmethod
-    def _get_response(cls, number: any) -> NumApiResponseData:
+    def _get_response(cls, number: str) -> NumApiResponseData:
         translator = cls._build_translator(number)
         return NumApiResponseData(cls.STATUS_OK, translator.get_translation())
 
     @classmethod
-    def _build_translator(cls, value: any) -> NumberEnglishTranslator:
+    def _build_translator(cls, value: str) -> NumberEnglishTranslator:
         # first check if any number was provided.
         if value is None or (isinstance(value, str) and value.strip() == ""):
             raise ValueError(cls.ERR_NO_NUM_PROVIDED)
         # then try to build a translator object
         try:
-            return NumberEnglishTranslator(Decimal(value))
+            return NumberEnglishTranslator(value)
         # Overflow error thrown if the number is too large.
         except OverflowError:
             raise ValueError(cls.ERR_NUM_TOO_LARGE)
         # Invalid operation thrown if a non-number is provided.
-        except InvalidOperation:
+        except ValueError:
             raise ValueError(cls.ERR_IMPROPER_VALUE)

@@ -1,6 +1,5 @@
 from django.http import HttpRequest
 from django.test.client import RequestFactory
-from num2words import num2words
 
 from numapi.services.number_translation_service import NumberTranslationService
 from numapi.response_models import NumApiResponseData
@@ -12,15 +11,12 @@ from django.test import TestCase
 from numapi.services.service_models import NumberEnglishTranslator
 from numapi.views import NumberAPI
 
-import math
-
-
 class NumApiRequestHandlerTests(TestCase):
     status_ok = "ok"
     status_bad = "There was an error."
     status_unknown = "Unknown error."
-    good_num = 123
-    translated_good_num = num2words(good_num)
+    good_num = "123"
+    translated_good_num = NumberEnglishTranslator(good_num).get_translation()
 
     status_field = "status"
     number_field = "num_to_english"
@@ -84,12 +80,6 @@ class NumApiRequestHandlerTests(TestCase):
         self.translation_service.handle_error.assert_called_with(error_msg)
         self.assertJSONEqual(response.content, self.error_content)
 
-class NumberTranslatorTest(TestCase):
-    translator = NumberEnglishTranslator()
-    translation = translator.process("100,000,023.000100")
-    print(translation)
-
-
 
 class NumberTranslationServiceTests(TestCase):
     http_get = NumberTranslationService.HTTP_GET
@@ -97,9 +87,10 @@ class NumberTranslationServiceTests(TestCase):
     parameter = NumberTranslationService.PARAMETER
     status_ok = NumberTranslationService.STATUS_OK
     status_bad = "Error"
-    test_numbers = [1234, -1234, 0, 1.0000000000001, .000001, -1.0001, -.000001]
+    test_numbers = ["1234", "-1234", "0", "1.0000000000001", ".000001", "-1.0001", "-.000001"]
     test_malformed = ["12ab", "abc", "123-4432", "", "**"]
     base_path = "/num_to_english"
+    large_num = "1" + "0" * 333
 
     error_response = NumApiResponseData(status_bad, None)
 
@@ -112,7 +103,7 @@ class NumberTranslationServiceTests(TestCase):
             self.assertEqual(response, self._good_response(num))
 
     def test_from_get_too_large_raises_error(self):
-        request = self._get_request(f"?number={math.factorial(170)}")
+        request = self._get_request(f"?number={self.large_num}")
         self.assert_error(NumberTranslationService.from_get, request, ValueError,
                           NumberTranslationService.ERR_NUM_TOO_LARGE)
 
@@ -139,7 +130,7 @@ class NumberTranslationServiceTests(TestCase):
             self.assertEqual(response, self._good_response(num))
 
     def test_from_post_too_large_raises_error(self):
-        request = self._get_post(number=math.factorial(170))
+        request = self._get_post(number=self.large_num)
         self.assert_error(NumberTranslationService.from_post, request, ValueError,
                           NumberTranslationService.ERR_NUM_TOO_LARGE)
 
@@ -176,4 +167,54 @@ class NumberTranslationServiceTests(TestCase):
                                          content_type='application/json', data=data)
 
     def _good_response(self, num: float) -> NumApiResponseData:
-        return NumApiResponseData(self.status_ok, num2words(num))
+        return NumApiResponseData(self.status_ok, NumberEnglishTranslator(str(num)).get_translation())
+
+
+class NumberEnglishTranslatorTest(TestCase):
+
+    def test_one(self):
+        translation = self.translate("1")
+        self.assertEqual("one", translation)
+
+    def test_one_point_one(self):
+        translation = self.translate("1.1")
+        self.assertEqual("one point one", translation)
+
+    def test_point_one(self):
+        translation = self.translate(".1")
+        self.assertEqual("point one", translation)
+
+    def test_zero_point_one(self):
+        translation = self.translate("0.1")
+        self.assertEqual("zero point one", translation)
+
+    def test_zero_zero_point_one(self):
+        translation = self.translate("0000.1")
+        self.assertEqual("zero point one", translation)
+
+    def test_zero(self):
+        translation = self.translate("0")
+        self.assertEqual("zero", translation)
+
+    def test_negative_point_one(self):
+        translation = self.translate("-0.1")
+        self.assertEqual("negative zero point one", translation)
+
+    def test_negative_one_point_one(self):
+        translation = self.translate("-1.1")
+        self.assertEqual("negative one point one", translation)
+
+    def test_negative_one_hundred_novencentillion(self):
+        translation = self.translate("-" + "1" + "0" * 100 + "7" + "0" * 231)
+        self.assertEqual("negative one-hundred novencentillion, seven seseptuagintillion", translation)
+
+    def test_large_number_raises_error(self):
+        with self.assertRaises(OverflowError):
+            self.translate("1" + "0" * 333)
+
+    def test_improper_format_raises_error(self):
+        with self.assertRaises(ValueError):
+            self.translate("1  324352")
+
+    def translate(self, num):
+        return NumberEnglishTranslator(num).get_translation()
